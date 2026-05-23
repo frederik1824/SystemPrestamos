@@ -26,6 +26,12 @@
                 <span class="material-symbols-outlined text-sm">print</span>
                 Imprimir Resumen
             </a>
+            @if($loan->payments()->count() === 0 && $loan->status !== 'paid')
+                <a href="{{ route('loans.edit', $loan) }}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold uppercase text-[10px] tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                    Modificar
+                </a>
+            @endif
             @if($loan->status !== 'paid')
                 <button onclick="settleLoan()" class="px-6 py-2 bg-amber-500 text-white rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-lg hover:bg-amber-600 transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">handshake</span>

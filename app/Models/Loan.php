@@ -147,12 +147,12 @@ class Loan extends Model
         $paidInstallments = floor($totalPaid / max(0.01, $amountPerInstallment));
 
         for ($i = 1; $i <= $this->installments; $i++) {
-            $dueDate = match ($this->payment_modality) {
-                'daily' => $startDate->copy()->addDays($i),
-                'weekly' => $startDate->copy()->addWeeks($i),
-                'biweekly' => $startDate->copy()->addDays($i * 15),
-                'monthly' => $startDate->copy()->addMonths($i),
-                default => $startDate->copy()->addDays($i),
+            $dueDate = match (strtolower($this->payment_modality)) {
+                'diario', 'daily' => $startDate->copy()->addDays($i),
+                'semanal', 'weekly' => $startDate->copy()->addWeeks($i),
+                'quincenal', 'biweekly' => $startDate->copy()->addDays($i * 15),
+                'mensual', 'monthly' => $startDate->copy()->addMonths($i),
+                default => $startDate->copy()->addMonths($i),
             };
 
             $status = 'pending';
