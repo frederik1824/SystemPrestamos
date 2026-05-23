@@ -17,7 +17,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                         <div class="md:col-span-2 space-y-2">
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Tipo de Préstamo</label>
-                            <div class="grid grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <label class="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border-2 border-transparent cursor-pointer transition-all hover:bg-slate-100 has-[:checked]:border-primary has-[:checked]:bg-white group">
                                     <input type="radio" name="type" value="installments" checked class="w-5 h-5 text-primary border-slate-300 focus:ring-primary/20 loan-type-radio">
                                     <div>

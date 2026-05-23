@@ -21,7 +21,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Cuotas</label>
                         <input type="number" id="calc-installments" value="12" min="1" class="w-full px-4 py-4 bg-slate-50 border-none rounded-2xl text-lg font-black text-slate-900 focus:ring-2 focus:ring-primary/20 transition-all outline-none">
@@ -34,7 +34,7 @@
 
                 <div class="space-y-2">
                     <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Tipo de Interés</label>
-                    <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <label class="relative cursor-pointer group">
                             <input type="radio" name="calc-type" value="simple" checked class="hidden peer">
                             <div class="p-4 rounded-2xl border-2 border-slate-100 bg-white text-center transition-all peer-checked:border-primary peer-checked:bg-primary/5 group-hover:bg-slate-50">
@@ -61,7 +61,7 @@
                     <p class="text-[10px] font-black uppercase tracking-widest text-white/50 mb-4 italic">Cuota Estimada</p>
                     <h4 class="text-6xl font-black text-white mb-10" id="res-installment">$0.00</h4>
                     
-                    <div class="grid grid-cols-2 gap-8 pt-10 border-t border-white/10">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 pt-10 border-t border-white/10">
                         <div>
                             <p class="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Total con Interés</p>
                             <p class="text-2xl font-black text-white" id="res-total">$0.00</p>
@@ -78,7 +78,7 @@
                 <div class="absolute -left-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             </x-ui.card>
 
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-white p-4 rounded-2xl border border-slate-100 text-center">
                     <span class="material-symbols-outlined text-primary mb-2">history_edu</span>
                     <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Sin Papeleo</p>

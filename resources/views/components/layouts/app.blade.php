@@ -17,9 +17,22 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://unpkg.com/imask"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
-<body class="bg-slate-50 font-sans antialiased">
-    <div class="min-h-screen flex">
+<body class="bg-slate-50 font-sans antialiased" x-data="{ sidebarOpen: false }" :class="{ 'overflow-hidden': sidebarOpen }">
+    <div class="min-h-screen flex relative">
+        <!-- Mobile Sidebar Overlay -->
+        <div x-show="sidebarOpen" 
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             class="fixed inset-0 bg-slate-900/80 z-40 lg:hidden backdrop-blur-sm"
+             style="display: none;"></div>
+
         <!-- Sidebar -->
         <x-layout.sidebar>
             <div class="px-6 py-10 mb-6">
