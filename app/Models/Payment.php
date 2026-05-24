@@ -13,6 +13,7 @@ class Payment extends Model
 
     protected $fillable = [
         'loan_id',
+        'type',
         'amount',
         'payment_date',
         'payment_method',

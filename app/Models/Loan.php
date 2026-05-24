@@ -52,15 +52,21 @@ class Loan extends Model
         return $this->hasMany(Collateral::class);
     }
 
+    public function getEffectiveAmount()
+    {
+        $capitalPaid = (float) $this->payments()->where('type', 'capital')->sum('amount');
+        return max(0, (float) $this->amount - $capitalPaid);
+    }
+
     public function calculateInterests()
     {
         if ($this->type === 'open') {
             // Para préstamos open, esto solo retorna el interés inicial del primer mes
-            return (float) $this->amount * ((float) $this->interest_rate / 100);
+            return (float) $this->getEffectiveAmount() * ((float) $this->interest_rate / 100);
         }
 
         return self::calculateTotalInterest(
-            (float) $this->amount, 
+            (float) $this->getEffectiveAmount(), 
             (float) $this->interest_rate, 
             $this->installments, 
             $this->interest_type
@@ -116,8 +122,10 @@ class Loan extends Model
     public function updateBalance()
     {
         if ($this->type === 'installments') {
-            $totalPaid = (float) $this->payments()->sum('amount');
-            $baseDebt = (float) $this->amount + (float) $this->calculateInterests();
+            $totalPaid = (float) $this->payments()->where(function($query) {
+                $query->whereNull('type')->orWhere('type', '!=', 'capital');
+            })->sum('amount');
+            $baseDebt = (float) $this->getEffectiveAmount() + (float) $this->calculateInterests();
             $lateFees = (float) $this->calculateLateFees();
             $this->balance = $baseDebt + $lateFees - $totalPaid;
         } else {
@@ -140,7 +148,9 @@ class Loan extends Model
     {
         $schedule = [];
         $startDate = \Carbon\Carbon::parse($this->start_date);
-        $totalPaid = (float) $this->payments()->sum('amount');
+        $totalPaid = (float) $this->payments()->where(function($query) {
+            $query->whereNull('type')->orWhere('type', '!=', 'capital');
+        })->sum('amount');
         $amountPerInstallment = (float) $this->installment_amount;
         
         // Determinar cuántas cuotas se han pagado proporcionalmente
@@ -175,6 +185,13 @@ class Loan extends Model
                 'total' => $amountPerInstallment + $moraAmount,
                 'status' => $status
             ];
+
+            // Truncar el calendario si el abono a capital ya cubre la deuda restante
+            // Esto refleja una reducción de plazo
+            $accumulated = $i * $amountPerInstallment;
+            if ($accumulated >= ($this->getEffectiveAmount() + $this->calculateInterests()) && $i > $paidInstallments) {
+                break;
+            }
         }
 
         return $schedule;
@@ -182,10 +199,12 @@ class Loan extends Model
 
     public function getRepaymentProgress()
     {
-        $totalToRecover = (float) ($this->amount + $this->calculateInterests());
+        $totalToRecover = (float) ($this->getEffectiveAmount() + $this->calculateInterests());
         if ($totalToRecover <= 0) return 0;
         
-        $totalPaid = (float) $this->payments()->sum('amount');
+        $totalPaid = (float) $this->payments()->where(function($query) {
+            $query->whereNull('type')->orWhere('type', '!=', 'capital');
+        })->sum('amount');
         return min(100, round(($totalPaid / $totalToRecover) * 100));
     }
 

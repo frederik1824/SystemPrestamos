@@ -27,6 +27,7 @@ class PaymentController extends Controller
     {
         $validated = $request->validate([
             'loan_id' => 'required|exists:loans,id',
+            'type' => 'nullable|in:regular,capital',
             'amount' => 'required|numeric|min:0.01',
             'payment_date' => 'required|date',
             'payment_method' => 'required|string',
@@ -39,13 +40,21 @@ class PaymentController extends Controller
             return back()->with('error', 'No se pueden realizar más pagos a un préstamo que ya ha sido saldado.');
         }
 
-        if ($validated['amount'] > $loan->balance) {
+        $isCapital = ($validated['type'] ?? 'regular') === 'capital';
+
+        if ($isCapital && $validated['amount'] > $loan->getEffectiveAmount()) {
+            return back()->withErrors(['amount' => 'El abono a capital no puede ser mayor al capital pendiente ($' . number_format((float) $loan->getEffectiveAmount(), 2) . ').']);
+        } elseif (!$isCapital && $validated['amount'] > $loan->balance) {
             return back()->withErrors(['amount' => 'El monto del pago no puede ser mayor al balance pendiente ($' . number_format((float) $loan->balance, 2) . ').']);
         }
 
         $payment = Payment::create($validated);
         
-        \App\Models\ActivityLog::log("Cobro de cuota(s) registrado por $" . number_format($payment->amount, 2), $loan, [
+        $logMsg = $isCapital 
+            ? "Abono a capital registrado por $" . number_format($payment->amount, 2)
+            : "Cobro de cuota(s) registrado por $" . number_format($payment->amount, 2);
+
+        \App\Models\ActivityLog::log($logMsg, $loan, [
             'method' => $payment->payment_method,
             'date' => $payment->payment_date
         ]);

@@ -210,8 +210,16 @@
                     @csrf
                     <input type="hidden" name="loan_id" value="{{ $loan->id }}">
                     
-                    @if($loan->type === 'installments')
                     <div class="space-y-2">
+                        <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Tipo de Pago</label>
+                        <select name="type" id="payment_type" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 transition-all font-bold text-slate-700">
+                            <option value="regular">Pago Regular</option>
+                            <option value="capital">Abono a Capital</option>
+                        </select>
+                    </div>
+
+                    @if($loan->type === 'installments')
+                    <div class="space-y-2" id="installments_container">
                         <label class="text-[10px] font-black uppercase tracking-widest text-slate-500">Seleccionar Cuota(s)</label>
                         <div class="space-y-1 max-h-56 overflow-y-auto custom-scrollbar p-1 bg-white border border-slate-200 rounded-2xl shadow-inner-sm">
                             @foreach($loan->getAmortizationSchedule() as $inst)
@@ -363,12 +371,15 @@
                     }
                 });
 
-                paymentAmountInput.value = total.toFixed(2);
+                if (document.getElementById('payment_type').value !== 'capital') {
+                    paymentAmountInput.value = total.toFixed(2);
+                }
                 
                 // Update words
+                const currentTotal = parseFloat(paymentAmountInput.value) || 0;
                 const wordsDisplay = document.getElementById('payment-amount-words');
                 if (wordsDisplay) {
-                    wordsDisplay.innerText = total > 0 ? window.numeroALetras.convert(total) : '';
+                    wordsDisplay.innerText = currentTotal > 0 ? window.numeroALetras.convert(currentTotal) : '';
                 }
                 
                 if (selectedNumbers.length > 0) {
@@ -383,6 +394,26 @@
                 }
             }
 
+            const paymentTypeSelect = document.getElementById('payment_type');
+            const installmentsContainer = document.getElementById('installments_container');
+
+            if (paymentTypeSelect) {
+                paymentTypeSelect.addEventListener('change', function() {
+                    if (this.value === 'capital') {
+                        if (installmentsContainer) installmentsContainer.classList.add('hidden');
+                        paymentAmountInput.readOnly = false;
+                        paymentAmountInput.value = '0.00';
+                        installmentText.innerText = 'Abono directo al capital';
+                        observationsTextarea.value = 'Abono a capital';
+                        installmentInfo.classList.remove('hidden');
+                    } else {
+                        if (installmentsContainer) installmentsContainer.classList.remove('hidden');
+                        paymentAmountInput.readOnly = {{ $loan->type === 'open' ? 'false' : 'true' }};
+                        updatePaymentDetails();
+                    }
+                });
+            }
+
             const paymentForm = document.querySelector('form[action="{{ route('payments.store') }}"]');
             if (paymentForm) {
                 paymentForm.addEventListener('submit', function(e) {
@@ -391,12 +422,13 @@
                     const amount = paymentAmountInput.value;
                     const details = installmentText ? installmentText.innerText : 'Abono a capital/interés';
                     const method = document.querySelector('select[name="payment_method"]').value;
+                    const isCapital = document.getElementById('payment_type').value === 'capital';
 
                     if (parseFloat(amount) <= 0) {
                         Swal.fire({
                             icon: 'error',
                             title: 'Monto inválido',
-                            text: 'Por favor seleccione al menos una cuota para pagar.',
+                            text: isCapital ? 'Ingrese un monto válido para el abono a capital.' : 'Por favor seleccione al menos una cuota para pagar.',
                             confirmButtonColor: '#0f172a',
                         });
                         return;
@@ -412,7 +444,11 @@
                                     <span class="text-sm font-black text-slate-900 uppercase">{{ $loan->customer->name }}</span>
                                 </div>
                                 <div class="flex justify-between py-1 border-b border-slate-200/50">
-                                    <span class="text-sm text-slate-600">Cuotas:</span>
+                                    <span class="text-sm text-slate-600">Tipo:</span>
+                                    <span class="text-sm font-black text-primary">${isCapital ? 'Abono a Capital' : 'Pago de Cuotas'}</span>
+                                </div>
+                                <div class="flex justify-between py-1 border-b border-slate-200/50">
+                                    <span class="text-sm text-slate-600">Detalle:</span>
                                     <span class="text-sm font-black text-primary">${details.replace('Pagando ', '')}</span>
                                 </div>
                                 <div class="flex justify-between py-1 border-b border-slate-200/50">
